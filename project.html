@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Q-Chameleon Wallet Visual Demo</title>
+  <style>
+    :root {
+      --bg: #07111f;
+      --panel: rgba(14, 25, 44, 0.92);
+      --panel-2: rgba(18, 34, 59, 0.92);
+      --text: #eaf2ff;
+      --muted: #97a9c3;
+      --line: #456078;
+      --good: #2bd576;
+      --warn: #ffbf47;
+      --bad: #ff5d6c;
+      --info: #56b6ff;
+      --purple: #b084ff;
+      --card-border: rgba(255,255,255,0.12);
+      --shadow: 0 22px 60px rgba(0,0,0,0.32);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(86, 182, 255, 0.20), transparent 28rem),
+        radial-gradient(circle at top right, rgba(176, 132, 255, 0.16), transparent 30rem),
+        linear-gradient(135deg, #06101c 0%, #091527 48%, #050914 100%);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    header {
+      padding: 28px 34px 14px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+    }
+
+    .title-block h1 {
+      margin: 0 0 8px;
+      font-size: clamp(28px, 4vw, 46px);
+      letter-spacing: -0.04em;
+      line-height: 1;
+    }
+
+    .title-block p {
+      margin: 0;
+      color: var(--muted);
+      max-width: 780px;
+      line-height: 1.55;
+    }
+
+    main {
+      padding: 12px 28px 32px;
+      display: grid;
+      grid-template-columns: minmax(700px, 1.75fr) minmax(330px, 0.85fr);
+      gap: 18px;
+    }
+
+    @media (max-width: 1050px) {
+      main { grid-template-columns: 1fr; }
+      header { flex-direction: column; }
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--card-border);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      backdrop-filter: blur(16px);
+    }
+
+    .controls {
+      margin: 0 28px 8px;
+      padding: 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      background: rgba(14, 25, 44, 0.78);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.18);
+    }
+
+    button {
+      border: 0;
+      color: #04111d;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      background: linear-gradient(135deg, #7ed7ff, #8bffbb);
+      padding: 11px 15px;
+      border-radius: 14px;
+      cursor: pointer;
+      box-shadow: 0 10px 20px rgba(43, 213, 118, 0.16);
+    }
+
+    button.secondary {
+      background: rgba(255,255,255,0.08);
+      color: var(--text);
+      border: 1px solid rgba(255,255,255,0.14);
+      box-shadow: none;
+    }
+
+    button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .progress-wrap {
+      flex: 1;
+      min-width: 220px;
+      height: 12px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--info), var(--good));
+      transition: width 400ms ease;
+    }
+
+    .step-count {
+      color: var(--muted);
+      font-size: 14px;
+      min-width: 92px;
+      text-align: right;
+    }
+
+    .diagram-card {
+      padding: 12px;
+    }
+
+    .diagram-shell {
+      width: 100%;
+      aspect-ratio: 1.64;
+      min-height: 510px;
+      border-radius: 18px;
+      background:
+        linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px),
+        radial-gradient(circle at center, rgba(86,182,255,0.06), transparent 34rem);
+      background-size: 36px 36px, 36px 36px, auto;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    svg { width: 100%; height: 100%; display: block; }
+
+    .zone-title {
+      font-size: 19px;
+      fill: rgba(234,242,255,0.72);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .zone-box {
+      fill: rgba(255,255,255,0.028);
+      stroke: rgba(255,255,255,0.10);
+      stroke-dasharray: 8 8;
+      rx: 22;
+    }
+
+    .node rect {
+      fill: rgba(18, 34, 59, 0.95);
+      stroke: rgba(255,255,255,0.18);
+      stroke-width: 2;
+      rx: 18;
+      filter: drop-shadow(0 12px 18px rgba(0,0,0,0.20));
+      transition: all 350ms ease;
+    }
+
+    .node .label {
+      fill: #eaf2ff;
+      font-size: 19px;
+      font-weight: 850;
+      letter-spacing: -0.02em;
+    }
+
+    .node .sub {
+      fill: #9eb0ca;
+      font-size: 13px;
+      font-weight: 560;
+    }
+
+    .node.active rect {
+      stroke: #66d9ff;
+      fill: rgba(35, 72, 105, 0.98);
+      filter: drop-shadow(0 0 18px rgba(86,182,255,0.62));
+    }
+
+    .node.success rect {
+      stroke: var(--good);
+      filter: drop-shadow(0 0 16px rgba(43,213,118,0.55));
+    }
+
+    .node.danger rect {
+      stroke: var(--bad);
+      fill: rgba(79, 28, 42, 0.98);
+      filter: drop-shadow(0 0 16px rgba(255,93,108,0.52));
+    }
+
+    .node.warn rect {
+      stroke: var(--warn);
+      filter: drop-shadow(0 0 16px rgba(255,191,71,0.48));
+    }
+
+    .arrow {
+      fill: none;
+      stroke: rgba(151, 169, 195, 0.47);
+      stroke-width: 3.2;
+      marker-end: url(#arrowHead);
+      transition: all 350ms ease;
+    }
+
+    .arrow.active {
+      stroke: var(--info);
+      stroke-width: 5;
+      filter: drop-shadow(0 0 9px rgba(86,182,255,0.85));
+      stroke-dasharray: 14 9;
+      animation: dash 0.9s linear infinite;
+    }
+
+    .arrow.success {
+      stroke: var(--good);
+      stroke-width: 5;
+      filter: drop-shadow(0 0 8px rgba(43,213,118,0.75));
+      stroke-dasharray: 14 9;
+      animation: dash 0.9s linear infinite;
+    }
+
+    .arrow.danger {
+      stroke: var(--bad);
+      stroke-width: 5;
+      filter: drop-shadow(0 0 8px rgba(255,93,108,0.75));
+      stroke-dasharray: 8 8;
+      animation: dash 0.8s linear infinite;
+    }
+
+    .arrow-label {
+      fill: rgba(234,242,255,0.82);
+      font-size: 12px;
+      font-weight: 700;
+      paint-order: stroke;
+      stroke: rgba(7,17,31,0.95);
+      stroke-width: 4px;
+      stroke-linejoin: round;
+    }
+
+    @keyframes dash {
+      from { stroke-dashoffset: 24; }
+      to { stroke-dashoffset: 0; }
+    }
+
+    .side {
+      display: grid;
+      gap: 16px;
+    }
+
+    .panel {
+      padding: 18px;
+      background: var(--panel);
+      border: 1px solid var(--card-border);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+    }
+
+    .panel h2, .panel h3 {
+      margin: 0 0 10px;
+      letter-spacing: -0.03em;
+    }
+
+    .step-title {
+      font-size: 24px;
+      line-height: 1.1;
+    }
+
+    .step-body {
+      color: var(--muted);
+      line-height: 1.55;
+      margin: 8px 0 0;
+    }
+
+    .state-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .metric {
+      padding: 13px;
+      background: rgba(255,255,255,0.055);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+    }
+
+    .metric .k {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 5px;
+    }
+
+    .metric .v {
+      font-size: 18px;
+      font-weight: 850;
+      letter-spacing: -0.02em;
+    }
+
+    .status-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .algo-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 15px;
+      background: rgba(255,255,255,0.045);
+    }
+
+    .algo-name {
+      font-weight: 750;
+    }
+
+    .pill {
+      padding: 6px 9px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.02em;
+      border: 1px solid rgba(255,255,255,0.12);
+    }
+
+    .pill.active { color: #9bffc4; background: rgba(43,213,118,0.13); border-color: rgba(43,213,118,0.35); }
+    .pill.degraded { color: #ffe0a3; background: rgba(255,191,71,0.13); border-color: rgba(255,191,71,0.35); }
+    .pill.quarantined { color: #ffb6be; background: rgba(255,93,108,0.14); border-color: rgba(255,93,108,0.40); }
+    .pill.locked { color: #ffd6dc; background: rgba(255,93,108,0.13); border-color: rgba(255,93,108,0.35); }
+    .pill.normal { color: #bde4ff; background: rgba(86,182,255,0.12); border-color: rgba(86,182,255,0.35); }
+
+    .transaction-box {
+      margin-top: 14px;
+      padding: 14px;
+      border-radius: 18px;
+      background: rgba(0,0,0,0.18);
+      border: 1px solid rgba(255,255,255,0.09);
+    }
+
+    .transaction-box .line {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      color: var(--muted);
+      padding: 5px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.055);
+    }
+
+    .transaction-box .line:last-child { border-bottom: 0; }
+    .transaction-box strong { color: var(--text); text-align: right; }
+
+    .log {
+      height: 225px;
+      overflow: auto;
+      padding: 12px;
+      background: #030914;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.08);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 12.5px;
+      line-height: 1.55;
+    }
+
+    .log-entry { color: #a6b8d4; margin-bottom: 4px; }
+    .log-entry.good { color: #93ffbc; }
+    .log-entry.bad { color: #ffabb4; }
+    .log-entry.warn { color: #ffdc91; }
+    .log-entry.info { color: #94d8ff; }
+
+    .legend {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 5px;
+    }
+
+    .dot.info { background: var(--info); }
+    .dot.good { background: var(--good); }
+    .dot.bad { background: var(--bad); }
+    .dot.warn { background: var(--warn); }
+
+    code {
+      color: #bde4ff;
+      background: rgba(255,255,255,0.07);
+      padding: 2px 6px;
+      border-radius: 7px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="title-block">
+      <h1>Q‑Chameleon Wallet Visual Demo</h1>
+      <p>Interactive browser demo of a distributed crypto-agile wallet. Step through normal signing, BFT zero-day quarantine, failed attacker drain, post-quantum fallback, and hash-based emergency escape.</p>
+    </div>
+  </header>
+
+  <section class="controls">
+    <button id="prevBtn" class="secondary">← Previous</button>
+    <button id="nextBtn">Next Step →</button>
+    <button id="autoBtn" class="secondary">Auto Play</button>
+    <button id="resetBtn" class="secondary">Reset</button>
+    <div class="progress-wrap" aria-label="demo progress">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+    <div class="step-count" id="stepCount">Step 1 / 10</div>
+  </section>
+
+  <main>
+    <section class="card diagram-card">
+      <div class="diagram-shell">
+        <svg viewBox="0 0 1200 730" role="img" aria-label="Architecture diagram of Q-Chameleon Wallet">
+          <defs>
+            <marker id="arrowHead" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+              <path d="M2,2 L10,6 L2,10 Z" fill="#8fb3cc"></path>
+            </marker>
+            <filter id="glow"><feGaussianBlur stdDeviation="4" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          </defs>
+
+          <!-- Zones -->
+          <rect class="zone-box" x="28" y="36" width="300" height="235"></rect>
+          <text class="zone-title" x="50" y="66">User / Recovery Layer</text>
+
+          <rect class="zone-box" x="354" y="36" width="340" height="445"></rect>
+          <text class="zone-title" x="378" y="66">Wallet Data Plane</text>
+
+          <rect class="zone-box" x="733" y="36" width="420" height="535"></rect>
+          <text class="zone-title" x="756" y="66">Distributed Control Plane</text>
+
+          <rect class="zone-box" x="28" y="598" width="1125" height="102"></rect>
+          <text class="zone-title" x="50" y="628">Blockchain / Settlement Layer</text>
+
+          <!-- Arrows behind nodes -->
+          <path id="arrow-sign" class="arrow" d="M 306 138 C 340 138, 352 142, 382 156"></path>
+          <text class="arrow-label" x="304" y="123">hybrid signatures</text>
+
+          <path id="arrow-guardians" class="arrow" d="M 306 228 C 345 248, 350 370, 382 398"></path>
+          <text class="arrow-label" x="218" y="322">3-of-5 shares + hash ticket</text>
+
+          <path id="arrow-policy-validators" class="arrow" d="M 518 154 L 518 222"></path>
+          <text class="arrow-label" x="532" y="188">policy check</text>
+
+          <path id="arrow-validators-vault" class="arrow" d="M 518 310 L 518 376"></path>
+          <text class="arrow-label" x="532" y="346">allow / reject</text>
+
+          <path id="arrow-vault-chain" class="arrow" d="M 518 462 C 518 540, 548 584, 590 628"></path>
+          <text class="arrow-label" x="548" y="560">settle transfer</text>
+
+          <path id="arrow-watch-gossip" class="arrow" d="M 948 154 L 948 218"></path>
+          <text class="arrow-label" x="964" y="190">alert</text>
+
+          <path id="arrow-gossip-bft" class="arrow" d="M 948 288 L 948 354"></path>
+          <text class="arrow-label" x="964" y="324">broadcast</text>
+
+          <path id="arrow-bft-registry" class="arrow" d="M 948 424 L 948 492"></path>
+          <text class="arrow-label" x="962" y="462">quorum certificate</text>
+
+          <path id="arrow-registry-log" class="arrow" d="M 842 526 C 786 526, 745 535, 698 555"></path>
+          <text class="arrow-label" x="710" y="522">append risk event</text>
+
+          <path id="arrow-registry-publisher" class="arrow" d="M 842 526 C 760 572, 736 616, 706 646"></path>
+          <text class="arrow-label" x="748" y="600">publish epoch</text>
+
+          <path id="arrow-publisher-wallet" class="arrow" d="M 648 628 C 645 520, 660 362, 648 262"></path>
+          <text class="arrow-label" x="662" y="468">latest risk epoch</text>
+
+          <path id="arrow-escape-new" class="arrow" d="M 386 426 C 312 465, 230 536, 166 628"></path>
+          <text class="arrow-label" x="210" y="528">emergency migration</text>
+
+          <!-- Nodes -->
+          <g id="node-user" class="node" transform="translate(54,88)">
+            <rect width="240" height="78"></rect>
+            <text class="label" x="18" y="30">User Devices</text>
+            <text class="sub" x="18" y="53">ECDSA · ML-DSA · SLH-DSA keys</text>
+          </g>
+
+          <g id="node-guardians" class="node" transform="translate(54,190)">
+            <rect width="240" height="72"></rect>
+            <text class="label" x="18" y="30">Guardians + Tickets</text>
+            <text class="sub" x="18" y="53">Shamir shares · one-time hash proof</text>
+          </g>
+
+          <g id="node-policy" class="node" transform="translate(386,92)">
+            <rect width="264" height="78"></rect>
+            <text class="label" x="18" y="30">Policy Engine</text>
+            <text class="sub" x="18" y="53">2-of-N independent crypto families</text>
+          </g>
+
+          <g id="node-validators" class="node" transform="translate(386,226)">
+            <rect width="264" height="88"></rect>
+            <text class="label" x="18" y="30">Validator Modules</text>
+            <text class="sub" x="18" y="54">ECDSA · ML-DSA · SLH-DSA</text>
+            <text class="sub" x="18" y="72">future algorithms plug in here</text>
+          </g>
+
+          <g id="node-emergency" class="node" transform="translate(386,350)">
+            <rect width="264" height="78"></rect>
+            <text class="label" x="18" y="30">Emergency Escape</text>
+            <text class="sub" x="18" y="53">Lamport / Merkle rescue path</text>
+          </g>
+
+          <g id="node-vault" class="node" transform="translate(386,446)">
+            <rect width="264" height="78"></rect>
+            <text class="label" x="18" y="30">Asset Vault</text>
+            <text class="sub" x="18" y="53">ETH · ERC20 · NFTs</text>
+          </g>
+
+          <g id="node-watchers" class="node" transform="translate(772,91)">
+            <rect width="176" height="78"></rect>
+            <text class="label" x="16" y="30">Watchers</text>
+            <text class="sub" x="16" y="53">research + exploit feeds</text>
+          </g>
+
+          <g id="node-canaries" class="node" transform="translate(970,91)">
+            <rect width="158" height="78"></rect>
+            <text class="label" x="16" y="30">Canaries</text>
+            <text class="sub" x="16" y="53">test wallets</text>
+          </g>
+
+          <g id="node-gossip" class="node" transform="translate(842,224)">
+            <rect width="214" height="78"></rect>
+            <text class="label" x="18" y="30">Gossip Network</text>
+            <text class="sub" x="18" y="53">fast threat propagation</text>
+          </g>
+
+          <g id="node-bft" class="node" transform="translate(842,358)">
+            <rect width="214" height="82"></rect>
+            <text class="label" x="18" y="30">BFT Committee</text>
+            <text class="sub" x="18" y="54">n=7 · f=2 · quorum=5</text>
+          </g>
+
+          <g id="node-registry" class="node" transform="translate(842,492)">
+            <rect width="214" height="78"></rect>
+            <text class="label" x="18" y="30">Risk Registry</text>
+            <text class="sub" x="18" y="53">algorithm status table</text>
+          </g>
+
+          <g id="node-log" class="node" transform="translate(536,532)">
+            <rect width="168" height="62"></rect>
+            <text class="label" x="15" y="28">Merkle Log</text>
+            <text class="sub" x="15" y="48">anti-equivocation</text>
+          </g>
+
+          <g id="node-chain" class="node" transform="translate(500,628)">
+            <rect width="210" height="62"></rect>
+            <text class="label" x="16" y="28">Base Chain / L2</text>
+            <text class="sub" x="16" y="48">final settlement</text>
+          </g>
+
+          <g id="node-new-wallet" class="node" transform="translate(54,628)">
+            <rect width="252" height="62"></rect>
+            <text class="label" x="16" y="28">New Safe Wallet</text>
+            <text class="sub" x="16" y="48">fresh PQ / hybrid policy</text>
+          </g>
+        </svg>
+      </div>
+      <div class="legend">
+        <span><span class="dot info"></span>active data flow</span>
+        <span><span class="dot good"></span>successful protection</span>
+        <span><span class="dot bad"></span>blocked attack / quarantined crypto</span>
+        <span><span class="dot warn"></span>emergency mode</span>
+      </div>
+    </section>
+
+    <aside class="side">
+      <section class="panel">
+        <h2 class="step-title" id="stepTitle">Initial state</h2>
+        <p class="step-body" id="stepBody">The wallet starts with three active crypto families and a distributed control plane ready to publish risk updates.</p>
+        <div class="state-grid">
+          <div class="metric"><span class="k">Registry epoch</span><span class="v" id="epochValue">0</span></div>
+          <div class="metric"><span class="k">Wallet mode</span><span class="v" id="modeValue">NORMAL</span></div>
+          <div class="metric"><span class="k">Old wallet</span><span class="v" id="oldBalance">1000</span></div>
+          <div class="metric"><span class="k">New wallet</span><span class="v" id="newBalance">0</span></div>
+          <div class="metric"><span class="k">BFT quorum</span><span class="v" id="quorumValue">0 / 5</span></div>
+          <div class="metric"><span class="k">Rescue ticket</span><span class="v" id="ticketValue">UNUSED</span></div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h3>Algorithm status</h3>
+        <div class="status-list">
+          <div class="algo-row"><span class="algo-name">ECDSA_SECP256K1</span><span id="statusECDSA" class="pill active">ACTIVE</span></div>
+          <div class="algo-row"><span class="algo-name">ML_DSA_65</span><span id="statusMLDSA" class="pill active">ACTIVE</span></div>
+          <div class="algo-row"><span class="algo-name">SLH_DSA_SHAKE_256</span><span id="statusSLH" class="pill active">ACTIVE</span></div>
+        </div>
+
+        <div class="transaction-box">
+          <div class="line"><span>Current request</span><strong id="requestValue">None</strong></div>
+          <div class="line"><span>Signatures shown</span><strong id="sigsValue">—</strong></div>
+          <div class="line"><span>Wallet decision</span><strong id="decisionValue">Waiting</strong></div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h3>Live event log</h3>
+        <div class="log" id="logBox"></div>
+      </section>
+    </aside>
+  </main>
+
+  <script>
+    const defaultState = () => ({
+      epoch: 0,
+      mode: "NORMAL",
+      oldBalance: 1000,
+      newBalance: 0,
+      quorum: "0 / 5",
+      ticket: "UNUSED",
+      statuses: {
+        ECDSA: "ACTIVE",
+        MLDSA: "ACTIVE",
+        SLH: "ACTIVE"
+      },
+      request: "None",
+      sigs: "—",
+      decision: "Waiting",
+      log: [{ text: "System booted: registry epoch 0, all crypto suites ACTIVE.", type: "info" }]
+    });
+
+    const steps = [
+      {
+        title: "1) Initial distributed state",
+        body: "The wallet starts with multiple crypto families, a BFT committee, canary wallets, a risk registry, and a hash-based escape path.",
+        activeNodes: ["node-user", "node-policy", "node-validators", "node-vault", "node-bft", "node-registry"],
+        activeArrows: [],
+        apply: s => s
+      },
+      {
+        title: "2) Normal hybrid transaction succeeds",
+        body: "The user signs a 100-token transfer using ECDSA + ML-DSA. Both algorithms are ACTIVE, so the 2-of-N family policy is satisfied.",
+        activeNodes: ["node-user", "node-policy", "node-validators", "node-vault", "node-chain"],
+        activeArrows: ["arrow-sign", "arrow-policy-validators", "arrow-validators-vault", "arrow-vault-chain"],
+        successNodes: ["node-vault", "node-chain"],
+        successArrows: ["arrow-vault-chain"],
+        apply: s => {
+          s.oldBalance = 900;
+          s.request = "Transfer 100 tokens";
+          s.sigs = "ECDSA + ML-DSA";
+          s.decision = "APPROVED";
+          s.log.push({ text: "Normal transfer: ECDSA + ML-DSA verified. Asset vault sends 100 tokens.", type: "good" });
+          return s;
+        }
+      },
+      {
+        title: "3) Zero-day warning propagates",
+        body: "Canary wallets and crypto watchers detect suspicious ECDSA behavior. A fast gossip layer spreads the alert to BFT nodes.",
+        activeNodes: ["node-watchers", "node-canaries", "node-gossip"],
+        activeArrows: ["arrow-watch-gossip"],
+        warnNodes: ["node-watchers", "node-canaries", "node-gossip"],
+        apply: s => {
+          s.request = "Threat evidence submitted";
+          s.sigs = "Watcher reports + canary signal";
+          s.decision = "PENDING BFT";
+          s.log.push({ text: "Threat signal: canary drain + exploit evidence gossiped to committee.", type: "warn" });
+          return s;
+        }
+      },
+      {
+        title: "4) BFT committee quarantines ECDSA",
+        body: "The committee finalizes a quorum certificate. The registry moves ECDSA from ACTIVE to QUARANTINED and publishes a new risk epoch on-chain.",
+        activeNodes: ["node-gossip", "node-bft", "node-registry", "node-log", "node-chain", "node-policy"],
+        activeArrows: ["arrow-gossip-bft", "arrow-bft-registry", "arrow-registry-log", "arrow-registry-publisher", "arrow-publisher-wallet"],
+        dangerNodes: ["node-registry"],
+        warnNodes: ["node-policy"],
+        dangerArrows: ["arrow-bft-registry"],
+        apply: s => {
+          s.epoch = 1;
+          s.mode = "SAFE MODE";
+          s.quorum = "5 / 5";
+          s.statuses.ECDSA = "QUARANTINED";
+          s.request = "Risk update: ECDSA → QUARANTINED";
+          s.sigs = "5 BFT node signatures";
+          s.decision = "EPOCH ACCEPTED";
+          s.log.push({ text: "BFT finalized epoch 1: ECDSA_SECP256K1 is QUARANTINED.", type: "bad" });
+          s.log.push({ text: "Wallet enters safe mode and rejects quarantined signature families.", type: "warn" });
+          return s;
+        }
+      },
+      {
+        title: "5) Compromised ECDSA attack fails",
+        body: "An attacker has the old ECDSA key and tries to drain 700 tokens. The wallet rejects it because ECDSA is no longer trusted.",
+        activeNodes: ["node-user", "node-policy", "node-validators"],
+        activeArrows: ["arrow-sign", "arrow-policy-validators"],
+        dangerNodes: ["node-user", "node-validators"],
+        dangerArrows: ["arrow-sign"],
+        apply: s => {
+          s.request = "Attacker drain: 700 tokens";
+          s.sigs = "ECDSA only";
+          s.decision = "REJECTED";
+          s.log.push({ text: "Attack attempt rejected: ECDSA is quarantined and one signature family is insufficient.", type: "bad" });
+          return s;
+        }
+      },
+      {
+        title: "6) Post-quarantine transaction still works",
+        body: "The owner signs with ML-DSA + SLH-DSA. The wallet remains usable because its policy is crypto-agile rather than ECDSA-dependent.",
+        activeNodes: ["node-user", "node-policy", "node-validators", "node-vault", "node-chain"],
+        activeArrows: ["arrow-sign", "arrow-policy-validators", "arrow-validators-vault", "arrow-vault-chain"],
+        successNodes: ["node-validators", "node-vault", "node-chain"],
+        successArrows: ["arrow-vault-chain"],
+        apply: s => {
+          s.oldBalance = 800;
+          s.request = "Transfer 100 tokens";
+          s.sigs = "ML-DSA + SLH-DSA";
+          s.decision = "APPROVED";
+          s.log.push({ text: "Fallback transfer succeeds using ML-DSA + SLH-DSA. ECDSA is ignored.", type: "good" });
+          return s;
+        }
+      },
+      {
+        title: "7) Emergency authorization is assembled",
+        body: "If multiple algorithms are considered risky, guardians combine 3-of-5 recovery shares and unlock an offline hash rescue ticket.",
+        activeNodes: ["node-guardians", "node-emergency", "node-policy"],
+        activeArrows: ["arrow-guardians"],
+        warnNodes: ["node-guardians", "node-emergency"],
+        apply: s => {
+          s.mode = "EMERGENCY READY";
+          s.request = "Assemble escape authorization";
+          s.sigs = "3 guardian shares + hash ticket";
+          s.decision = "READY";
+          s.log.push({ text: "Emergency authorization assembled: 3-of-5 shares + unused Lamport/Merkle rescue ticket.", type: "warn" });
+          return s;
+        }
+      },
+      {
+        title: "8) Hash-based emergency escape succeeds",
+        body: "The wallet verifies the one-time hash proof and Merkle inclusion proof, then moves all remaining assets to a fresh PQ/hybrid wallet.",
+        activeNodes: ["node-guardians", "node-emergency", "node-policy", "node-vault", "node-new-wallet", "node-chain"],
+        activeArrows: ["arrow-guardians", "arrow-validators-vault", "arrow-escape-new"],
+        successNodes: ["node-emergency", "node-vault", "node-new-wallet"],
+        successArrows: ["arrow-escape-new"],
+        apply: s => {
+          s.mode = "OLD WALLET LOCKED";
+          s.newBalance = 800;
+          s.oldBalance = 0;
+          s.ticket = "SPENT";
+          s.request = "Emergency migrate all assets";
+          s.sigs = "Hash one-time proof + Merkle proof";
+          s.decision = "ESCAPE APPROVED";
+          s.log.push({ text: "Emergency escape approved: 800 tokens moved to New Safe Wallet.", type: "good" });
+          s.log.push({ text: "Old wallet locked and rescue ticket marked as spent.", type: "info" });
+          return s;
+        }
+      },
+      {
+        title: "9) Replay of rescue ticket is blocked",
+        body: "An attacker tries to reuse the same rescue ticket. The wallet rejects the replay because each hash ticket is one-time only.",
+        activeNodes: ["node-guardians", "node-emergency", "node-policy"],
+        activeArrows: ["arrow-guardians"],
+        dangerNodes: ["node-guardians", "node-emergency"],
+        dangerArrows: ["arrow-guardians"],
+        apply: s => {
+          s.request = "Replay emergency ticket";
+          s.sigs = "Previously spent hash ticket";
+          s.decision = "REJECTED";
+          s.log.push({ text: "Replay rejected: rescue ticket already spent. Balances unchanged.", type: "bad" });
+          return s;
+        }
+      },
+      {
+        title: "10) Final result",
+        body: "The zero-day did not drain the wallet. ECDSA was quarantined, normal fallback worked, and the hash-only escape path safely migrated the remaining assets.",
+        activeNodes: ["node-policy", "node-registry", "node-vault", "node-new-wallet", "node-chain"],
+        activeArrows: ["arrow-publisher-wallet", "arrow-escape-new"],
+        successNodes: ["node-new-wallet", "node-chain"],
+        apply: s => {
+          s.request = "Demo complete";
+          s.sigs = "Crypto-agile policy + hash escape";
+          s.decision = "ASSETS PROTECTED";
+          s.log.push({ text: "Demo complete: distributed crypto agility protected funds through zero-day response.", type: "good" });
+          return s;
+        }
+      }
+    ];
+
+    let current = 0;
+    let autoTimer = null;
+
+    const $ = id => document.getElementById(id);
+
+    function deriveState(stepIndex) {
+      let s = defaultState();
+      for (let i = 0; i <= stepIndex; i++) {
+        s = steps[i].apply(s);
+      }
+      return s;
+    }
+
+    function clearHighlights() {
+      document.querySelectorAll('.node').forEach(el => {
+        el.classList.remove('active', 'success', 'danger', 'warn');
+      });
+      document.querySelectorAll('.arrow').forEach(el => {
+        el.classList.remove('active', 'success', 'danger');
+      });
+    }
+
+    function setClasses(ids, klass) {
+      (ids || []).forEach(id => {
+        const el = $(id);
+        if (el) el.classList.add(klass);
+      });
+    }
+
+    function setStatus(id, value) {
+      const el = $(id);
+      el.textContent = value;
+      el.className = 'pill ' + value.toLowerCase().replace(/\s+/g, '-');
+    }
+
+    function render() {
+      const step = steps[current];
+      const state = deriveState(current);
+
+      $('stepTitle').textContent = step.title;
+      $('stepBody').textContent = step.body;
+      $('epochValue').textContent = state.epoch;
+      $('modeValue').textContent = state.mode;
+      $('oldBalance').textContent = state.oldBalance;
+      $('newBalance').textContent = state.newBalance;
+      $('quorumValue').textContent = state.quorum;
+      $('ticketValue').textContent = state.ticket;
+      $('requestValue').textContent = state.request;
+      $('sigsValue').textContent = state.sigs;
+      $('decisionValue').textContent = state.decision;
+
+      setStatus('statusECDSA', state.statuses.ECDSA);
+      setStatus('statusMLDSA', state.statuses.MLDSA);
+      setStatus('statusSLH', state.statuses.SLH);
+
+      $('progressBar').style.width = `${(current / (steps.length - 1)) * 100}%`;
+      $('stepCount').textContent = `Step ${current + 1} / ${steps.length}`;
+      $('prevBtn').disabled = current === 0;
+      $('nextBtn').disabled = current === steps.length - 1;
+
+      clearHighlights();
+      setClasses(step.activeNodes, 'active');
+      setClasses(step.activeArrows, 'active');
+      setClasses(step.successNodes, 'success');
+      setClasses(step.successArrows, 'success');
+      setClasses(step.warnNodes, 'warn');
+      setClasses(step.dangerNodes, 'danger');
+      setClasses(step.dangerArrows, 'danger');
+
+      const log = $('logBox');
+      log.innerHTML = state.log.map((entry, index) => {
+        const n = String(index + 1).padStart(2, '0');
+        return `<div class="log-entry ${entry.type || ''}">[${n}] ${entry.text}</div>`;
+      }).join('');
+      log.scrollTop = log.scrollHeight;
+    }
+
+    function next() {
+      if (current < steps.length - 1) current++;
+      render();
+      if (current === steps.length - 1) stopAuto();
+    }
+
+    function prev() {
+      if (current > 0) current--;
+      render();
+    }
+
+    function reset() {
+      stopAuto();
+      current = 0;
+      render();
+    }
+
+    function startAuto() {
+      if (autoTimer) return stopAuto();
+      $('autoBtn').textContent = 'Pause';
+      autoTimer = setInterval(() => {
+        if (current >= steps.length - 1) {
+          stopAuto();
+        } else {
+          next();
+        }
+      }, 2300);
+    }
+
+    function stopAuto() {
+      if (autoTimer) clearInterval(autoTimer);
+      autoTimer = null;
+      $('autoBtn').textContent = 'Auto Play';
+    }
+
+    $('nextBtn').addEventListener('click', next);
+    $('prevBtn').addEventListener('click', prev);
+    $('resetBtn').addEventListener('click', reset);
+    $('autoBtn').addEventListener('click', startAuto);
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ') next();
+      if (e.key === 'ArrowLeft') prev();
+      if (e.key.toLowerCase() === 'r') reset();
+    });
+
+    render();
+  </script>
+</body>
+</html>
